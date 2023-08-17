@@ -26,5 +26,6 @@ commander
   .command('eslint', `Runs ESLint with the given arguments`)
   .command('jest', `Runs Jest with the given arguments`)
   .command('tsc', `Runs tsc with the given arguments`)
+  .command('getStructure', `Generate structure`)
 
   .parse(process.argv);
