@@ -6,7 +6,7 @@
 
 ### 🎉 New features
 
-- Add `assetPrefix` support for `npx expo export`.
+- Add `assetPrefix` support for `npx expo export`. ([#23911](https://github.com/expo/expo/pull/23911) by [@EvanBacon](https://github.com/EvanBacon))
 
 ### 🐛 Bug fixes
 
