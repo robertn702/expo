@@ -27,5 +27,5 @@ commander
   .command('jest', `Runs Jest with the given arguments`)
   .command('tsc', `Runs tsc with the given arguments`)
   .command('getStructure', `Generate structure`)
-
+  .command('mockgen', `Generate mocks`)
   .parse(process.argv);
