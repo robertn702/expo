@@ -3,7 +3,7 @@
 
 const { execSync } = require('child_process');
 const fs = require('fs');
-const glob = require('glob');
+const { globSync } = require('glob');
 const XML = require('xml-js');
 const YAML = require('yaml');
 
@@ -89,12 +89,22 @@ function parseXMLAnnotatedDeclarations(cursorInfoOutput) {
   const parameters =
     maybeWrapArray(parsed?.['decl.function.free']?.['decl.var.parameter'])?.map((p) => ({
       name: maybeUnwrapXMLStructs(p['decl.var.parameter.argument_label']),
-      nametype: maybeUnwrapXMLStructs(p['decl.var.parameter.type']),
+      typename: maybeUnwrapXMLStructs(p['decl.var.parameter.type']),
     })) ?? [];
   const returnType = maybeUnwrapXMLStructs(
     parsed?.['decl.function.free']?.['decl.function.returntype']
   );
   return { parameters, returnType };
+}
+
+let cachedResponse = null;
+function getSDKPath() {
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  const sdkPath = execSync('xcrun --sdk iphoneos --show-sdk-path').toString().trim();
+  cachedResponse = sdkPath;
+  return cachedResponse;
 }
 
 // Read type description with sourcekitten, works only for variables
@@ -110,9 +120,9 @@ function getTypeFromOffsetObject(offsetObject, file) {
       file.path,
       // TODO: get this from the project
       '-target',
-      'arm64-apple-ios16.4.0',
+      'arm64-apple-ios',
       '-sdk',
-      '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.4.sdk',
+      getSDKPath(),
     ],
   };
   const yamlRequest = YAML.stringify(request, {
@@ -235,19 +245,24 @@ function parseModuleDefinition(moduleDefinition, file) {
 }
 
 function findModuleDefinitionsInFiles(files) {
+  const modules = [];
   for (const path of files) {
     const file = { path, content: fs.readFileSync(path, 'utf8') };
     const definition = findModuleDefinitionInStructure(getStructureFromFile(file));
     if (definition) {
-      console.log(JSON.stringify(parseModuleDefinition(definition, file), null, 2));
+      modules.push(parseModuleDefinition(definition, file));
     }
   }
+  return modules;
 }
 
-glob(pattern, (error, files) => {
-  if (error) {
-    console.error('An error occurred while searching for Swift files:', error);
-  } else {
-    findModuleDefinitionsInFiles(files);
-  }
-});
+function getAllModulesInWorkingDirectory() {
+  const files = globSync(pattern);
+  return findModuleDefinitionsInFiles(files);
+}
+
+module.exports = getAllModulesInWorkingDirectory;
+
+if (require.main === module) {
+  console.log(JSON.stringify(getAllModulesInWorkingDirectory(), null, 2));
+}
