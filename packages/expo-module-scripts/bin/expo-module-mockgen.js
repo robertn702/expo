@@ -148,8 +148,8 @@ function printModules() {
       false,
       ts.ScriptKind.TSX
     );
-    fs.mkdirSync(path.join(directoryPath, 'nativeModuleMock'), { recursive: true });
-    const filePath = path.join(directoryPath, 'nativeModuleMock', m.name + '.ts');
+    fs.mkdirSync(path.join(directoryPath, 'mocks'), { recursive: true });
+    const filePath = path.join(directoryPath, 'mocks', m.name + '.ts');
     const mock = getMockForModule(m);
     const printedTs = printer.printList(ts.ListFormat.MultiLine, mock, resultFile);
     // const transpiledJs = ts.transpileModule(printedTs, { compilerOptions: { module: ts.ModuleKind.ESNext,target:ts.ScriptTarget.ESNext } }).outputText;
