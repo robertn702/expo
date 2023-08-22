@@ -1,5 +1,9 @@
 import * as Updates from './Updates';
-import type { Manifest, UpdatesNativeStateMachineContext } from './Updates.types';
+import type {
+  Manifest,
+  UpdatesNativeStateMachineContext,
+  UpdatesNativeStateRollback,
+} from './Updates.types';
 import { UpdateInfoType, type CurrentlyRunningInfo, type UpdateInfo } from './UseUpdates.types';
 
 // The currently running info, constructed from Updates constants
@@ -45,6 +49,15 @@ export const updateFromManifest: (manifest: NonNullable<Manifest>) => UpdateInfo
   };
 };
 
+export const updateFromRollback: (rollback: UpdatesNativeStateRollback) => UpdateInfo = (
+  rollback
+) => ({
+  type: UpdateInfoType.ROLLBACK,
+  createdAt: new Date(rollback.commitTime),
+  manifest: undefined,
+  updateId: undefined,
+});
+
 // Default useUpdates() state
 export const defaultUseUpdatesState: UseUpdatesStateType = {
   isChecking: false,
@@ -60,9 +73,13 @@ export const reduceUpdatesStateFromContext: (
 ) => UseUpdatesStateType = (updatesState, context) => {
   const availableUpdate = context?.latestManifest
     ? updateFromManifest(context?.latestManifest)
+    : context.rollback
+    ? updateFromRollback(context.rollback)
     : undefined;
   const downloadedUpdate = context?.downloadedManifest
     ? updateFromManifest(context?.downloadedManifest)
+    : context.rollback
+    ? updateFromRollback(context.rollback)
     : undefined;
   return {
     ...updatesState,
